@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowRight, ArrowLeft, RefreshCw, Check, Star } from 'lucide-react';
+import { ArrowRight, ArrowLeft, RefreshCw, Check, Star, Plus } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { SlideType, SlideData } from './types';
 import { Sticks } from './components/Sticks';
@@ -18,7 +18,7 @@ const SLIDES: SlideData[] = [
     id: SlideType.WARMUP,
     title: "热身运动：数一数",
     description: "让我们一起大声从1数到20吧！",
-    voiceOverText: "准备好了吗？预备，开始！1，2，3..."
+    voiceOverText: "准备好了吗？预备，开始！我们一根一根地数小棒。"
   },
   {
     id: SlideType.CONCEPT_ABACUS,
@@ -63,8 +63,18 @@ const App: React.FC = () => {
   const [userInput, setUserInput] = useState('');
   const [feedback, setFeedback] = useState<'idle' | 'correct' | 'wrong'>('idle');
   const [practiceQuestion, setPracticeQuestion] = useState({ tens: 1, ones: 7 }); // Default 17
+  
+  // State for Warmup Slide
+  const [warmupCount, setWarmupCount] = useState(0);
 
   const slide = SLIDES[currentSlideIndex];
+
+  // Reset warmup count when entering the slide
+  useEffect(() => {
+    if (slide.id === SlideType.WARMUP) {
+      setWarmupCount(0);
+    }
+  }, [currentSlideIndex, slide.id]);
 
   const handleNext = () => {
     if (currentSlideIndex < SLIDES.length - 1) {
@@ -118,17 +128,35 @@ const App: React.FC = () => {
 
       case SlideType.WARMUP:
         return (
-          <div className="flex flex-col items-center gap-8">
-            <div className="grid grid-cols-5 gap-4">
-              {Array.from({ length: 20 }).map((_, i) => (
-                <div key={i} className="w-12 h-12 flex items-center justify-center bg-yellow-300 rounded-full text-xl font-bold text-yellow-900 shadow transform transition hover:scale-110 cursor-default">
-                  {i + 1}
+          <div className="flex flex-col items-center w-full max-w-3xl">
+             <div className="mb-6 flex flex-col items-center">
+                <span className="text-8xl font-bold text-blue-600 font-mono mb-2 h-24 flex items-center">
+                  {warmupCount > 0 ? warmupCount : "?"}
+                </span>
+                <div className="text-gray-500 text-lg">
+                  {warmupCount === 20 ? "数完了！太棒了！" : "请点击按钮，我们一起数小棒"}
                 </div>
-              ))}
-            </div>
-            <button className="bg-green-500 text-white px-6 py-3 rounded-full font-bold text-xl shadow-lg hover:bg-green-600 transition flex items-center gap-2">
-              <Star className="fill-current" /> 一起数一数
-            </button>
+             </div>
+
+             <div className="mb-8 w-full flex justify-center">
+                <Sticks count={warmupCount} />
+             </div>
+
+             <div className="flex gap-4">
+                <button
+                  onClick={() => setWarmupCount(0)}
+                  className="px-6 py-3 rounded-full border-2 border-gray-300 text-gray-500 hover:bg-gray-100 font-bold flex items-center gap-2"
+                >
+                  <RefreshCw size={20} /> 重来
+                </button>
+                <button
+                  onClick={() => setWarmupCount(prev => Math.min(prev + 1, 20))}
+                  disabled={warmupCount >= 20}
+                  className="px-8 py-3 rounded-full bg-blue-500 text-white font-bold text-xl hover:bg-blue-600 shadow-lg transform active:scale-95 transition flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                   <Plus size={24} /> {warmupCount === 0 ? "开始" : "数一根"}
+                </button>
+             </div>
           </div>
         );
 
